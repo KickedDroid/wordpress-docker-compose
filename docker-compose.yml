@@ -1,25 +1,22 @@
-version: '3'
-
+version: '3.8' # Use a modern version
 services:
   wp:
-    image: wordpress:latest # https://hub.docker.com/_/wordpress/
+    image: wordpress:latest
     ports:
-      - ${IP}:${PORT}:80 # change ip if required
+      - ${IP}:${PORT}:80
     volumes:
       - ./config/wp_php.ini:/usr/local/etc/php/conf.d/conf.ini
-      - ./wp-app:/var/www/html # Full wordpress project
-      #- ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Plugin development
-      #- ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Theme development
+      - ./wp-app:/var/www/html
+      # - ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Uncomment for plugin development
+      # - ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Uncomment for theme development
     environment:
-      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_HOST: db # Service name is used as the hostname
       WORDPRESS_DB_NAME: "${DB_NAME}"
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: "${DB_ROOT_PASSWORD}"
     depends_on:
-      - db
-    links:
-      - db
-
+      db:
+        condition: service_healthy
   wpcli:
     image: wordpress:cli
     volumes:
@@ -31,30 +28,35 @@ services:
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: "${DB_ROOT_PASSWORD}"
     depends_on:
-      - db
-      - wp
-
+      db:
+        condition: service_healthy 
+      wp:
+        condition: service_started
   pma:
-    image: phpmyadmin:latest  # https://hub.docker.com/_/phpmyadmin
+    image: phpmyadmin:latest
     environment:
-      # https://docs.phpmyadmin.net/en/latest/setup.html#docker-environment-variables
       PMA_HOST: db
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
       UPLOAD_LIMIT: 50M
     ports:
       - ${IP}:8080:80
-    links:
-      - db:db
     volumes:
-     - ./config/pma_php.ini:/usr/local/etc/php/conf.d/conf.ini
-     - ./config/pma_config.php:/etc/phpmyadmin/config.user.inc.php
+      - ./config/pma_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./config/pma_config.php:/etc/phpmyadmin/config.user.inc.php
+    depends_on:
+      - db # Add depends_on for pma to wait for db
 
   db:
-    image: mysql:latest # https://hub.docker.com/_/mysql/ - or mariadb https://hub.docker.com/_/mariadb
-    # platform: linux/x86_64  # Uncomment if your machine is running on arm (ex: Apple Silicon processor)
+    image: mysql:latest
+    # platform: linux/x86_64 # Uncomment if your machine is running on arm (e.g., Apple Silicon)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
     ports:
-      - ${IP}:3306:3306 # change ip if required
+      - ${IP}:3306:3306
     command: [
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_unicode_ci'
