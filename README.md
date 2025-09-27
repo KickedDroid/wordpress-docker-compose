@@ -1,3 +1,42 @@
+Install `just`
+```
+sudo apt install just
+```
+Start
+
+```
+just up
+```
+
+Stop
+
+```
+just down
+```
+
+Delete volumes and containers
+
+```
+just del
+```
+
+Enter wordpress container
+
+```
+CONTAINER ID  IMAGE                                COMMAND               CREATED         STATUS                   PORTS                     NAMES
+d88056108c81  docker.io/library/mysql:latest       --character-set-s...  11 seconds ago  Up 11 seconds (healthy)  127.0.0.1:3306->3306/tcp  wordpress-docker-compose-db-1
+f9d451c61f05  docker.io/library/phpmyadmin:latest  apache2-foregroun...  11 seconds ago  Up 11 seconds            127.0.0.1:8080->80/tcp    wordpress-docker-compose-pma-1
+07d9bd6f820c  docker.io/library/wordpress:latest   apache2-foregroun...  11 seconds ago  Up Less than a second    127.0.0.1:80->80/tcp      wordpress-docker-compose-wp-1
+883458be0e4e  docker.io/library/wordpress:cli      wp shell              11 seconds ago  Up Less than a second 
+```
+
+Get container id and enter an interactive terminal
+
+```
+sudo docker exec -it ID bash
+```
+
+---
 # WPDC - WordPress Docker Compose
 
 Easy WordPress development with Docker and Docker Compose.
