@@ -2,7 +2,7 @@ compose:
 	sudo docker-compose up -d
 
 get-id:
-	sudo docker ps # sudo docker exec CONTAINER-ID -it bash"
+	sudo docker ps # sudo docker exec -it CONTAINER-ID bash"
 
 env:
 	cp env.example .env
